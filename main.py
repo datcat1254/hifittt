@@ -573,7 +573,7 @@ async def get_track(id: int, quality: str = "HI_RES_LOSSLESS", immersiveaudio: b
     track_url = f"https://api.tidal.com/v1/tracks/{id}/playbackinfo"
     params = {
         "audioquality": quality,
-        "playbackmode": "STREAM",
+        "playbackmode": "DOWNLOAD",
         "assetpresentation": "FULL",
         "immersiveaudio": immersiveaudio
     }
