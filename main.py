@@ -578,6 +578,28 @@ async def get_track(id: int, quality: str = "HI_RES_LOSSLESS", immersiveaudio: b
         "immersiveaudio": immersiveaudio
     }
     return await make_request(track_url, params=params)
+
+
+import base64
+from fastapi.responses import Response
+from fastapi import HTTPException
+
+@app.get("/manifest.mpd")
+async def get_manifest_mpd(id: int, quality: str = "HI_RES_LOSSLESS", immersiveaudio: bool = False):
+    track_url = f"https://api.tidal.com/v1/tracks/{id}/playbackinfo"
+    params = {
+        "audioquality": quality,
+        "playbackmode": "STREAM",
+        "assetpresentation": "FULL",
+        "immersiveaudio": immersiveaudio
+    }
+    res = await make_request(track_url, params=params)
+    try:
+        manifest_b64 = res["data"]["manifest"]
+        xml = base64.b64decode(manifest_b64).decode('utf-8')
+        return Response(content=xml, media_type="application/dash+xml")
+    except Exception:
+        raise HTTPException(status_code=404, detail="Manifest no encontrado o no es DASH")
     
 @app.get("/trackManifests/")
 async def get_track_manifests(
