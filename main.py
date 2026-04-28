@@ -578,17 +578,6 @@ async def get_track(id: int, quality: str = "HI_RES_LOSSLESS", immersiveaudio: b
         "immersiveaudio": immersiveaudio
     }
     return await make_request(track_url, params=params)
-
-@app.get("/track_mobile/")
-async def get_track_mobile(id: int, quality: str = "HI_RES_LOSSLESS", immersiveaudio: bool = False):
-    track_url = f"https://api.tidal.com/v1/tracks/{id}/playbackinfo"
-    params = {
-        "audioquality": quality,
-        "playbackmode": "DOWNLOAD", # Este modo entrega el FLAC directo sin fragmentar
-        "assetpresentation": "FULL",
-        "immersiveaudio": immersiveaudio
-    }
-    return await make_request(track_url, params=params)
     
 @app.get("/trackManifests/")
 async def get_track_manifests(
