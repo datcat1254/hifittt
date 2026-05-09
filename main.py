@@ -11,6 +11,7 @@ import httpx
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query, Request
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
 import logging
@@ -570,6 +571,36 @@ async def health_check():
         "message": "HiFi API is running perfectly"
     }
 
+class SpotiFLACDownloadReq(BaseModel):
+    id: str
+    quality: Optional[str] = "HI_RES_LOSSLESS"
+    endpoint: Optional[str] = None
+    formats: Optional[List[str]] = None
+
+@app.post("/v1/dl/tid2")
+async def spotiflac_download_adapter(req: SpotiFLACDownloadReq):
+    # 1. Si SpotiFLAC pide Dolby Atmos (usa el endpoint 'manifests' de la API v2)
+    if req.endpoint == "manifests" and req.formats:
+        url = f"https://openapi.tidal.com/v2/trackManifests/{req.id}"
+        params = [
+            ("adaptive", "true"),
+            ("manifestType", "MPEG_DASH"),
+            ("uriScheme", "HTTPS"),
+            ("usage", "PLAYBACK"),
+        ]
+        for f in req.formats:
+            params.append(("formats", f))
+        return await make_request(url, params=params)
+
+    # 2. Si SpotiFLAC pide calidades normales (Lossless, High, Low)
+    track_url = f"https://api.tidal.com/v1/tracks/{req.id}/playbackinfo"
+    params = {
+        "audioquality": req.quality,
+        "playbackmode": "STREAM",
+        "assetpresentation": "FULL",
+        "immersiveaudio": "false"
+    }
+    return await make_request(track_url, params=params)
 @app.get("/info/")
 async def get_info(id: int):
     url = f"https://api.tidal.com/v1/tracks/{id}/"
