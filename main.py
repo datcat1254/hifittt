@@ -563,6 +563,13 @@ async def authed_get_json(
 async def index():
     return {"version": API_VERSION, "Repo": "https://github.com/binimum/hifi-api"}
 
+@app.get("/v1/health", status_code=200)
+async def health_check():
+    return {
+        "status": "ok",
+        "message": "HiFi API is running perfectly"
+    }
+
 @app.get("/info/")
 async def get_info(id: int):
     url = f"https://api.tidal.com/v1/tracks/{id}/"
